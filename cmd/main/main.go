@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"time"
-	"github.com/AlammobaDar/realflow/internal/pkcapture"
+	"realflow/internal/pkcapture"
 )
 
 func main() {
@@ -14,5 +14,10 @@ func main() {
 	promisc := false
 	timeout := 1 * time.Second
 
+	err := pkcapture.PacketCapture(device, snaplen, promisc, int(timeout.Seconds()))
+	if err != nil {
+		log.Fatalf("Error capturing packets: %v", err)
+	}
 
+	fmt.Println("Packet capture completed.")
 }

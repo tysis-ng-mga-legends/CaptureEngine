@@ -27,4 +27,7 @@ func PacketCapture(device string, snaplen int32, promisc bool, timeout int) erro
 		
 		metadata := packet.Metadata()
 		fmt.Printf("Packet captured at %s, length: %d bytes\n", metadata.Timestamp.Format(time.RFC3339), metadata.Length)
+	}
+
+	return nil
 }
