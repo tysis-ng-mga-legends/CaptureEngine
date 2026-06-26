@@ -11,13 +11,6 @@ import (
 )
 
 
-type FlowID struct {
-	SrcIP  string
-	DstIP string
-	SrcPort uint16
-	DstPort uint16
-	Protocol string
-}
 
 func PacketCapture(device string, snaplen int32, promisc bool, timeout int) error {
 
