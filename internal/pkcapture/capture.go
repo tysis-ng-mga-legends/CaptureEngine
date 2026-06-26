@@ -23,6 +23,7 @@ func PacketCapture(device string, snaplen int32, promisc bool, timeout int) erro
 
 	defer handle.Close()
 
+	orchestrator := NewOrchestrator()
 	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
 	
 	for packet := range packetSource.Packets() {
@@ -30,9 +31,13 @@ func PacketCapture(device string, snaplen int32, promisc bool, timeout int) erro
 		metadata := packet.Metadata()
 		flowID := CaptureFiveTuples(packet)
 
+		if flowID.Protocol == "" {
+			continue
+		}
 
-		fmt.Printf("Packet captured at %s, SrcIP: %s DstIP: %s SrcPort: %d DstPort: %d Protocol: %s length: %d bytes\n",
-		metadata.Timestamp.Format(time.RFC3339), flowID.SrcIP, flowID.DstIP, flowID.SrcPort, flowID.DstPort, flowID.Protocol, metadata.Length)	}
+		orchestrator.IncrementPacketCount(flowID, PacketData{Timestamp: metadata.Timestamp, Length: metadata.Length})
+
+	}
 
 	return nil
 }
