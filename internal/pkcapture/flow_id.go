@@ -9,7 +9,7 @@ type FlowID struct {
 	Protocol string
 }
 
-
+// This method normalizes the flowID by ensuring the flows will be unique bidirectionally.
 func (id FlowID) GetNormalized() FlowID {
 	if id.SrcIP > id.DstIP {
 		return FlowID{
