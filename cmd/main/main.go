@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 	"time"
-	"realflow/internal/pkcapture"
-	"realflow/internal/sender"
+	"capture_engine/internal/pkcapture"
+	"capture_engine/internal/sender"
 )
 
 func main() {

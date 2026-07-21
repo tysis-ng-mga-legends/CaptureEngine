@@ -38,7 +38,7 @@ func (fo *FlowOrchestrator) IncrementPacketCount(flowID FlowID, packet PacketDat
 		Length:    packet.Length,
 	})
 
-	if len(fo.ActiveSequence[canonicalID]) == 5 {
+	if len(fo.ActiveSequence[canonicalID]) == 15 {
 	
 		packetBatch := fo.ActiveSequence[canonicalID]
 

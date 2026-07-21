@@ -1,4 +1,4 @@
-module realflow
+module capture_engine
 
 go 1.26.4
 
