@@ -1,5 +1,7 @@
 package ftextract
 
+import "fmt"
+
 type Features struct {
 	FwdPktLenMax int16
 	BwdPktLenMax int16
@@ -19,7 +21,10 @@ type Features struct {
 
 func (f *Features)ExractFeatures(length []int, isFwd []bool, timestamp []int64) {
 	
-	temp := TemporalFeatures{}
-	temp.GetTemporalFeatures(timestamp)
+	tf := TemporalFeatures{}
+	temp := tf.GetTemporalFeatures(timestamp)
+	// fmt.Print(timestamp, length)	
+	fmt.Print(temp)
+
 }
 
