@@ -20,7 +20,7 @@ type Features struct {
 	// PshFlagCnt int8
 }
 
-func (f *Features)ExractFeatures(timestamp []uint64, length []int) {
+func (f *Features)ExractFeatures(timestamp []int64, length []int) {
 	
 	temp := TemporalFeatures{}
 	temp.GetTemporalFeatures(timestamp)

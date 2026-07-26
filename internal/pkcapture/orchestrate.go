@@ -5,7 +5,7 @@ import (
 )
 
 type PacketData struct {
-	Timestamp uint64 `json:"timestamp"`
+	Timestamp int64 `json:"timestamp"`
 	Length int `json:"length"` 
 }
 
@@ -41,7 +41,7 @@ func (fo *FlowOrchestrator) IncrementPacketCount(flowID FlowID, packet PacketDat
 	
 		packetBatch := fo.ActiveSequence[canonicalID]
 		
-		timestamp := make([]uint64, len(packetBatch))	
+		timestamp := make([]int64, len(packetBatch))	
 		length := make([]int, len(packetBatch))
 
 		for i, p:= range packetBatch {
