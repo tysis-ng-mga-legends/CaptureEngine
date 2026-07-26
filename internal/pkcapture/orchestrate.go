@@ -3,6 +3,7 @@ package pkcapture
 import (
 	"fmt"
 	"time"
+	"capture_engine/internal/ftextract"
 )
 
 type PacketData struct {
@@ -38,15 +39,25 @@ func (fo *FlowOrchestrator) IncrementPacketCount(flowID FlowID, packet PacketDat
 		Length:    packet.Length,
 	})
 
-	if len(fo.ActiveSequence[canonicalID]) == 15 {
+	if len(fo.ActiveSequence[canonicalID]) == 7 {
 	
 		packetBatch := fo.ActiveSequence[canonicalID]
-
+		
+		inputs := make([]ftextract.PacketInput, len(packetBatch))
+		for i, p := range packetBatch {
+			inputs[i] = ftextract.PacketInput{
+				Timestamp: p.Timestamp,
+				Length:    p.Length,
+			}
+		}
+		
+		tf := &ftextract.TemporalFeatures{}
+		tf.GetTemporalFeatures(inputs)
+		
 		completedBatch := FlowBatch{
 			ID: canonicalID,
 			Packets: packetBatch,
 		}
-
 		// fo.AnalyzeSequence(canonicalID, packetBatch)
 		fo.OutboundChannel <- completedBatch
 		
