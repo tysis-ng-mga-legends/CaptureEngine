@@ -33,7 +33,7 @@ func PacketCapture(device string, snaplen int32, promisc bool, timeout int, orch
 			continue
 		}
 
-		orchestrator.IncrementPacketCount(flowID, PacketData{Timestamp: int64(metadata.Timestamp.UnixNano()), Length: metadata.Length})
+		orchestrator.IncrementPacketCount(flowID, PacketData{Timestamp: int64(metadata.Timestamp.UnixMicro()), Length: metadata.Length})
 
 	}
 
