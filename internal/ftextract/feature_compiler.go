@@ -17,23 +17,9 @@ type Features struct {
 	// PshFlagCnt int8
 }
 
-func (f *Features)ExractFeatures(lengths []int, isFwd []bool, timestamps []uint64) {
-	// temporal := TemporalFeatures{}
-	// temporal.GetTemporalFeatures(timestamps)
-	if len(lengths) == 0 {
-		return
-	}
-
-	spatial := ExtractSpatialFeatures(lengths, isFwd)
-
-	f.FwdPktLenMax = spatial.FwdPktLenMax
-	f.BwdPktLenMax = spatial.BwdPktLenMax
-	f.FwdPktLenMin = spatial.FwdPktLenMin
-	f.BwdPktLenMin = spatial.BwdPktLenMin
-	f.FwdPktLenMean = spatial.FwdPktLenMean
-	f.BwdPktLenMean = spatial.BwdPktLenMean
-	f.FwdPktLenSTD = spatial.FwdPktLenSTD
-	f.BwdPktLenSTD = spatial.BwdPktLenSTD
-	f.PktLenVar = spatial.PktLenVar
+func (f *Features)ExractFeatures(length []int, isFwd []bool, timestamp []int64) {
+	
+	temp := TemporalFeatures{}
+	temp.GetTemporalFeatures(timestamp)
 }
 

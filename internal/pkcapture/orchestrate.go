@@ -6,7 +6,7 @@ import (
 
 type PacketData struct {
     SourceIP  string `json:"source_ip"`
-    Timestamp uint64 `json:"timestamp"`
+    Timestamp int64 `json:"timestamp"`
     Length    int    `json:"length"`
 }
 type FlowBatch struct {
@@ -43,7 +43,7 @@ func (fo *FlowOrchestrator) IncrementPacketCount(flowID FlowID, packet PacketDat
 		
 		lengths := make([]int, len(packetBatch))
 		isFwd := make([]bool, len(packetBatch))
-		timestamps := make([]uint64, len(packetBatch))
+		timestamps := make([]int64, len(packetBatch))
 
 		initiatorIP := packetBatch[0].SourceIP
 		for i, pkt := range packetBatch {

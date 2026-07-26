@@ -12,13 +12,22 @@ type TemporalFeatures struct {
 	FwdIatMean float32
 }
 
-func (tf *TemporalFeatures) GetTemporalFeatures(timestamp []uint64){
+func (tf *TemporalFeatures) GetTemporalFeatures(timestamps []int64){
 	
 	// for _ ,data := range packetData{
 	// 	fmt.Printf(`Timestamp: %s, Length: %d`+"\n", data.Timestamp.Format(time.RFC3339), data.Length)
 	// }
 
-	fmt.Print(timestamp)
+	fmt.Print(timestamps)
 }
 
-// func getFlowIAtMean ()
+func getFlowIAtMean(timestamps []int64) float32 {
+	
+	var sum float32 = 0
+	for _, t := range timestamps {
+		sum += float32(t) 
+	}
+	return sum / float32(len(timestamps))
+}
+
+func getFlowIatSTD(timestamps []int64)
