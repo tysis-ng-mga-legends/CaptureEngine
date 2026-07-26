@@ -1,5 +1,8 @@
 package ftextract
-import ("math")
+import (
+		"math"
+		"capture_engine/internal/models"
+)
 
 type SpatialFeatures struct {
 	FwdPktLenMax int16
@@ -14,7 +17,7 @@ type SpatialFeatures struct {
 }
 
 // ExtractSpatialFeatures parses the window and determines packet direction 
-func ExtractSpatialFeatures(packets []PacketMetadata) SpatialFeatures {
+func ExtractSpatialFeatures(packets []models.PacketData) SpatialFeatures {
 	var feats SpatialFeatures
 	
 	if len(packets) == 0 {
