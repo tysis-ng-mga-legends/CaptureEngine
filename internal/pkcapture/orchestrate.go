@@ -1,13 +1,11 @@
 package pkcapture
 
 import (
-	"fmt"
-	"time"
 	"capture_engine/internal/ftextract"
 )
 
 type PacketData struct {
-	Timestamp time.Time `json:"timestamp"`
+	Timestamp uint64 `json:"timestamp"`
 	Length int `json:"length"` 
 }
 
@@ -43,16 +41,16 @@ func (fo *FlowOrchestrator) IncrementPacketCount(flowID FlowID, packet PacketDat
 	
 		packetBatch := fo.ActiveSequence[canonicalID]
 		
-		inputs := make([]ftextract.PacketInput, len(packetBatch))
-		for i, p := range packetBatch {
-			inputs[i] = ftextract.PacketInput{
-				Timestamp: p.Timestamp,
-				Length:    p.Length,
-			}
+		timestamp := make([]uint64, len(packetBatch))	
+		length := make([]int, len(packetBatch))
+
+		for i, p:= range packetBatch {
+			timestamp[i] = p.Timestamp
+			length[i] = p.Length
 		}
 		
-		tf := &ftextract.TemporalFeatures{}
-		tf.GetTemporalFeatures(inputs)
+		ft :=  ftextract.Features{}
+		ft.ExractFeatures(timestamp, length)
 		
 		completedBatch := FlowBatch{
 			ID: canonicalID,
@@ -63,21 +61,4 @@ func (fo *FlowOrchestrator) IncrementPacketCount(flowID FlowID, packet PacketDat
 		
 		// delete (fo.ActiveSequence, canonicalID)
 	}
-}
-
-// This method is just a placheholder, this will be replaced by feature extraction logic.
-func (o *FlowOrchestrator) AnalyzeSequence(id FlowID, packets []PacketData) {
-	fmt.Printf("\n==================================================\n")
-	fmt.Printf("FLOW BATCH READY FOR CLASSIFICATION\n")
-	fmt.Printf("Protocol: %s | Host A: %s:%d | Host B: %s:%d\n", id.Protocol, id.SrcIP, id.SrcPort, id.DstIP, id.DstPort)
-	fmt.Printf("Total Packets in Batch: %d\n", len(packets))
-
-	for idx, packet := range packets {
-		fmt.Printf("  Packet %d -> Captured: %s | Size: %d bytes\n", 
-			idx+1, 
-			packet.Timestamp.Format("15:04:05.000000"), 
-			packet.Length,
-		)
-	}
-	fmt.Printf("==================================================\n")
 }

@@ -14,6 +14,7 @@ import (
 func PacketCapture(device string, snaplen int32, promisc bool, timeout int, orchestrator *FlowOrchestrator) error {
 
 	handle, err := pcap.OpenLive(device, snaplen, promisc, time.Duration(timeout))
+
 	
 	if err != nil {
 		log.Fatal(err)
@@ -32,7 +33,7 @@ func PacketCapture(device string, snaplen int32, promisc bool, timeout int, orch
 			continue
 		}
 
-		orchestrator.IncrementPacketCount(flowID, PacketData{Timestamp: metadata.Timestamp, Length: metadata.Length})
+		orchestrator.IncrementPacketCount(flowID, PacketData{Timestamp: uint64(metadata.Timestamp.UnixNano()), Length: metadata.Length})
 
 	}
 
