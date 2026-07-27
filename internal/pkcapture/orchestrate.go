@@ -59,13 +59,9 @@ func (fo *FlowOrchestrator) IncrementPacketCount(flowID FlowID, packet PacketDat
 			ID:      canonicalID,
 			Features: features,
 		}
-
-		// fmt.Printf("\n\n %v", completedBatch)
-		// fo.AnalyzeSequence(canonicalID, packetBatch)
-		fo.OutboundChannel <- completedBatch
 		
 		fo.OutboundChannel <- completedBatch
 		// Clear the sequence window so new packets for this flow can be tracked
-		delete(fo.ActiveSequence, canonicalID)
+		// delete(fo.ActiveSequence, canonicalID)
 	}
 }
