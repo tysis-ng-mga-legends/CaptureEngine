@@ -2,34 +2,36 @@ package pkcapture
 
 import (
 	"capture_engine/internal/ftextract"
-	"capture_engine/internal/models"
 )
 
+type PacketData struct {
+    SourceIP  string `json:"source_ip"`
+    Timestamp uint64 `json:"timestamp"`
+    Length    int    `json:"length"`
+}
 type FlowBatch struct {
 	ID      FlowID              `json:"flow_id"`
-	Packets []models.PacketData `json:"packets"`
-	Features ftextract.SpatialFeatures  `json:"features"`
+	Features ftextract.Features  `json:"features"`
 }
 
 type FlowOrchestrator struct {
-	ActiveSequence  map[FlowID][]models.PacketData
+	ActiveSequence  map[FlowID][]PacketData
 	OutboundChannel chan FlowBatch
 }
 
 // This function creates a new instance of FlowOrchestrator with an initialized ActiveSequence map.
 func NewOrchestrator() *FlowOrchestrator {
 	return &FlowOrchestrator{
-		ActiveSequence:  make(map[FlowID][]models.PacketData),
+		ActiveSequence:  make(map[FlowID][]PacketData),
 		OutboundChannel: make(chan FlowBatch, 100),
 	}
 }
 
 // This method increments the packet count for a given flowID and stores the packet data in the ActiveSequence map.
-func (fo *FlowOrchestrator) IncrementPacketCount(flowID FlowID, packet models.PacketData) {
+func (fo *FlowOrchestrator) IncrementPacketCount(flowID FlowID, packet PacketData) {
 
 	canonicalID := flowID.GetNormalized()
-
-	fo.ActiveSequence[canonicalID] = append(fo.ActiveSequence[canonicalID], models.PacketData{
+	fo.ActiveSequence[canonicalID] = append(fo.ActiveSequence[canonicalID], PacketData{
 		SourceIP:  packet.SourceIP,
 		Timestamp: packet.Timestamp,
 		Length:    packet.Length,
@@ -39,17 +41,26 @@ func (fo *FlowOrchestrator) IncrementPacketCount(flowID FlowID, packet models.Pa
 	
 		packetBatch := fo.ActiveSequence[canonicalID]
 		
-		// Call the spatial feature extraction function correctly
-		spatialFeats := ftextract.ExtractSpatialFeatures(packetBatch)
-		
+		lengths := make([]int, len(packetBatch))
+		isFwd := make([]bool, len(packetBatch))
+		timestamps := make([]uint64, len(packetBatch))
+
+		initiatorIP := packetBatch[0].SourceIP
+		for i, pkt := range packetBatch {
+			lengths[i] = pkt.Length
+			isFwd[i] = pkt.SourceIP == initiatorIP
+			timestamps[i] = pkt.Timestamp
+		}
+
+		features := ftextract.Features{}
+		features.ExractFeatures(lengths, isFwd, timestamps)
+
 		completedBatch := FlowBatch{
 			ID:      canonicalID,
-			Packets: packetBatch,
-			Features: spatialFeats,
+			Features: features,
 		}
 		
 		fo.OutboundChannel <- completedBatch
-		
 		// Clear the sequence window so new packets for this flow can be tracked
 		delete(fo.ActiveSequence, canonicalID)
 	}

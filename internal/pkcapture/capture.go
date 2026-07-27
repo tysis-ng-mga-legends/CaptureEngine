@@ -8,7 +8,6 @@ import (
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcap"
-	"capture_engine/internal/models"
 )
 
 // This function captures packets from the specified network device and processes them using the FlowOrchestrator.
@@ -34,7 +33,7 @@ func PacketCapture(device string, snaplen int32, promisc bool, timeout int, orch
 			continue
 		}
 
-		orchestrator.IncrementPacketCount(flowID, models.PacketData{SourceIP: flowID.SrcIP, Timestamp: uint64(metadata.Timestamp.UnixNano()), Length: metadata.Length})
+		orchestrator.IncrementPacketCount(flowID, PacketData{SourceIP: flowID.SrcIP, Timestamp: uint64(metadata.Timestamp.UnixNano()), Length: metadata.Length})
 
 	}
 

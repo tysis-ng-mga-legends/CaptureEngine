@@ -1,9 +1,5 @@
 package ftextract
 
-import (
-	"capture_engine/internal/models"
-)
-
 type Features struct {
 	FwdPktLenMax int16
 	BwdPktLenMax int16
@@ -21,14 +17,14 @@ type Features struct {
 	// PshFlagCnt int8
 }
 
-func (f *Features)ExractFeatures(packets []models.PacketData, timestamp []uint64, length []int) {
+func (f *Features)ExractFeatures(lengths []int, isFwd []bool, timestamps []uint64) {
 	// temporal := TemporalFeatures{}
 	// temporal.GetTemporalFeatures(timestamps)
-	if len(packets) == 0 {
+	if len(lengths) == 0 {
 		return
 	}
 
-	spatial := ExtractSpatialFeatures(packets)
+	spatial := ExtractSpatialFeatures(lengths, isFwd)
 
 	f.FwdPktLenMax = spatial.FwdPktLenMax
 	f.BwdPktLenMax = spatial.BwdPktLenMax

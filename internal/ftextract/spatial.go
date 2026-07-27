@@ -1,7 +1,6 @@
 package ftextract
 import (
 		"math"
-		"capture_engine/internal/models"
 )
 
 type SpatialFeatures struct {
@@ -17,10 +16,10 @@ type SpatialFeatures struct {
 }
 
 // ExtractSpatialFeatures parses the window and determines packet direction 
-func ExtractSpatialFeatures(packets []models.PacketData) SpatialFeatures {
+func ExtractSpatialFeatures(lengths []int, isFwd []bool) SpatialFeatures {
 	var feats SpatialFeatures
 	
-	if len(packets) == 0 {
+	if len(lengths) == 0 {
 		return feats
 	}
 
@@ -28,17 +27,14 @@ func ExtractSpatialFeatures(packets []models.PacketData) SpatialFeatures {
 	var lBwd []float64
 	var lAll []float64
 
-	// determines the direction by identifying the flow initiator
-	initiatorIP := packets[0].SourceIP
-
-	for _, p := range packets {
-		length := float64(p.Length)
+	for i, length := range lengths {
+		length := float64(length)
 		
 		// all lengths are stored for bidirectional calculations
 		lAll = append(lAll, length)
 
 		// packets are routed based on their direction relative to the initiator
-		if p.SourceIP == initiatorIP {
+		if isFwd[i] {
 			lFwd = append(lFwd, length)
 		} else {
 			lBwd = append(lBwd, length)
