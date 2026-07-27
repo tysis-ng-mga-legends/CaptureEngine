@@ -4,28 +4,18 @@ import (
 	"sort"
 )
 
-
-type TemporalFeatures struct {
-	FlowIatMean float32
-	FlowIatSTD float32
-	FlowIatMax float32
-	FwdIatMean float32
-}
-
 // function that coordinates the functions in this file and returns TemporalFeatures
-func GetTemporalFeatures(timestamps []int64) TemporalFeatures{
+func GetTemporalFeatures(feats *Features, timestamps []int64) {
 
 	iats := computeIat(timestamps)
 	iatMean := calculateMean(iats)
 	iatStd := calculateStdDev(iats)
 	iatMax := findIatMax(iats)
 
-	return TemporalFeatures{
-		FlowIatMean: iatMean,
-		FlowIatSTD: iatStd,
-		FlowIatMax: iatMax,
-		FwdIatMean: 0.0, // still waiting for dan to finish with the directions
-	}
+	feats.FlowIatMean = iatMean
+	feats.FlowIatSTD = iatStd
+	feats.FlowIatMax = iatMax
+	feats.FwdIatMean = 0.0
 }
 
 // compute the inter-arrival-time of each timestamps and return an array of iats

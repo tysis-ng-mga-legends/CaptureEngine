@@ -1,23 +1,10 @@
 package ftextract
 
-type SpatialFeatures struct {
-	FwdPktLenMax int16
-	BwdPktLenMax int16
-	FwdPktLenMin int16
-	BwdPktLenMin int16
-	FwdPktLenMean float32
-	BwdPktLenMean float32
-	FwdPktLenSTD float32
-	BwdPktLenSTD float32
-	PktLenVar float32
-}
-
 // ExtractSpatialFeatures parses the window and determines packet direction 
-func ExtractSpatialFeatures(lengths []int, isFwd []bool) SpatialFeatures {
-	var feats SpatialFeatures
+func ExtractSpatialFeatures(feats *Features, lengths []int, isFwd []bool) {
 	
 	if len(lengths) == 0 {
-		return feats
+		return
 	}
 
 	var lFwd []float32
@@ -26,7 +13,6 @@ func ExtractSpatialFeatures(lengths []int, isFwd []bool) SpatialFeatures {
 
 	for i, length := range lengths {
 		length := float32(length)
-		
 		// all lengths are stored for bidirectional calculations
 		lAll = append(lAll, length)
 
@@ -47,6 +33,4 @@ func ExtractSpatialFeatures(lengths []int, isFwd []bool) SpatialFeatures {
 	feats.FwdPktLenSTD = calculateStdDev(lFwd)
 	feats.BwdPktLenSTD = calculateStdDev(lBwd)
 	feats.PktLenVar = calculateVariance(lAll)
-	
-	return feats
 }

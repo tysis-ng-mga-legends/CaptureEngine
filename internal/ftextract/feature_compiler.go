@@ -26,25 +26,11 @@ func (f *Features)ExractFeatures(lengths []int, isFwd []bool, timestamp []int64)
 	if len(lengths) == 0 {
 		return Features{}
 	}
+	var feats Features
+	GetTemporalFeatures(&feats, timestamp)
+	ExtractSpatialFeatures(&feats, lengths, isFwd)
 
-	temp := GetTemporalFeatures(timestamp)
-	spatial := ExtractSpatialFeatures(lengths, isFwd)
-
-	return Features {
-		FwdPktLenMax : spatial.FwdPktLenMax,
-		BwdPktLenMax : spatial.BwdPktLenMax,
-		FwdPktLenMin : spatial.FwdPktLenMin,
-		BwdPktLenMin : spatial.BwdPktLenMin,
-		FwdPktLenMean : spatial.FwdPktLenMean,
-		BwdPktLenMean : spatial.BwdPktLenMean,
-		FwdPktLenSTD : spatial.FwdPktLenSTD,
-		BwdPktLenSTD : spatial.BwdPktLenSTD,
-		PktLenVar : spatial.PktLenVar,
-		FlowIatMean: temp.FlowIatMean,
-		FlowIatSTD: temp.FlowIatSTD,
-		FlowIatMax: temp.FlowIatMax,
-		FwdIatMean: temp.FwdIatMean,			
-	}
+	return feats
 }
 
 func calculateMin(data []float32) int16 {
