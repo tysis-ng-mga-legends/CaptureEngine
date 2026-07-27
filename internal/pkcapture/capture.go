@@ -32,8 +32,21 @@ func PacketCapture(device string, snaplen int32, promisc bool, timeout int, orch
 		if flowID.Protocol == "" {
 			continue
 		}
+		
+		var tcpFlags uint8 = 0
+		if tcpLayer := packet.Layer(layers.LayerTypeTCP); tcpLayer != nil {
+			tcp, _ := tcpLayer.(*layers.TCP)
+			if tcp.FIN { tcpFlags |= 0x01 }
+			if tcp.SYN { tcpFlags |= 0x02 }
+			if tcp.RST { tcpFlags |= 0x04 }
+			if tcp.PSH { tcpFlags |= 0x08 }
+			if tcp.ACK { tcpFlags |= 0x10 }
+			if tcp.URG { tcpFlags |= 0x20 }
+			if tcp.ECE { tcpFlags |= 0x40 }
+			if tcp.CWR { tcpFlags |= 0x80 }
+		}
 
-		orchestrator.IncrementPacketCount(flowID, PacketData{SourceIP: flowID.SrcIP, Timestamp: int64(metadata.Timestamp.UnixMicro()), Length: metadata.Length})
+		orchestrator.IncrementPacketCount(flowID, PacketData{SourceIP: flowID.SrcIP, Timestamp: int64(metadata.Timestamp.UnixMicro()), Length: metadata.Length, TCPFlags: tcpFlags})
 
 	}
 
