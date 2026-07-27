@@ -21,13 +21,12 @@ type Features struct {
 	// PshFlagCnt int8
 }
 
-
-func (f *Features)ExractFeatures(lengths []int, isFwd []bool, timestamp []int64) Features {
+func ExtractFeatures(lengths []int, isFwd []bool, timestamp []int64) Features {
 	if len(lengths) == 0 {
 		return Features{}
 	}
 	var feats Features
-	GetTemporalFeatures(&feats, timestamp)
+	GetTemporalFeatures(&feats, timestamp, isFwd)
 	ExtractSpatialFeatures(&feats, lengths, isFwd)
 
 	return feats

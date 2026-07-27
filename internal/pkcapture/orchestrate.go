@@ -52,8 +52,8 @@ func (fo *FlowOrchestrator) IncrementPacketCount(flowID FlowID, packet PacketDat
 			timestamps[i] = pkt.Timestamp
 		}
 
-		features := ftextract.Features{}
-		features.ExractFeatures(lengths, isFwd, timestamps)
+
+		features := ftextract.ExtractFeatures(lengths, isFwd, timestamps)
 
 		completedBatch := FlowBatch{
 			ID:      canonicalID,

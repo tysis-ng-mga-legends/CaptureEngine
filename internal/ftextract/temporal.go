@@ -5,17 +5,23 @@ import (
 )
 
 // function that coordinates the functions in this file and returns TemporalFeatures
-func GetTemporalFeatures(feats *Features, timestamps []int64) {
+func GetTemporalFeatures(feats *Features, timestamps []int64, isFwd []bool) {
 
 	iats := computeIat(timestamps)
-	iatMean := calculateMean(iats)
-	iatStd := calculateStdDev(iats)
-	iatMax := findIatMax(iats)
 
-	feats.FlowIatMean = iatMean
-	feats.FlowIatSTD = iatStd
-	feats.FlowIatMax = iatMax
-	feats.FwdIatMean = 0.0
+	feats.FlowIatMean = calculateMean(iats)
+	feats.FlowIatSTD = calculateStdDev(iats)
+	feats.FlowIatMax = findIatMax(iats)
+
+	var fwdTimestamps []int64
+	for i, timestamp := range timestamps {
+		if isFwd[i]{
+			fwdTimestamps = append(fwdTimestamps, timestamp)
+		}
+	}
+
+	fwdIats := computeIat(fwdTimestamps)
+	feats.FwdIatMean = calculateMean(fwdIats)
 }
 
 // compute the inter-arrival-time of each timestamps and return an array of iats
