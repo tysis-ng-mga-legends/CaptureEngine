@@ -29,7 +29,7 @@ func StartFeatureStream(orchestrator *pkcapture.FlowOrchestrator) {
 		
 		payload := map[string]any{
 			"flow_id": batch.ID,
-			"packets": batch.Packets,
+			"features": batch.Features,
 		}
 
 

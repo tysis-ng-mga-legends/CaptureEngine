@@ -11,7 +11,8 @@ type PacketData struct {
 
 type FlowBatch struct {
 	ID FlowID `json:"flow_id"`
-	Packets []PacketData `json:"packets"`
+	// Packets []PacketData `json:"packets"`
+	Features ftextract.Features
 
 }
 type FlowOrchestrator struct {
@@ -50,11 +51,11 @@ func (fo *FlowOrchestrator) IncrementPacketCount(flowID FlowID, packet PacketDat
 		}
 		
 		ft :=  ftextract.Features{}
-		ft.ExractFeatures(timestamp, length)
+		features := ft.ExtractFeatures(timestamp, length)
 		
 		completedBatch := FlowBatch{
 			ID: canonicalID,
-			Packets: packetBatch,
+			Features: features,
 		}
 
 		// fmt.Printf("\n\n %v", completedBatch)
