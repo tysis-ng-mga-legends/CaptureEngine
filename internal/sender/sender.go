@@ -16,7 +16,7 @@ func StartFeatureStream(orchestrator *pkcapture.FlowOrchestrator) {
 
 	pusher := zmq4.NewPush(ctx)
 	
-	err := pusher.Dial("ipc:///tmp/flow_pipeline.ipc")
+	err := pusher.Dial("tcp://127.0.0.1:5555")
 
 	if err != nil{
 		log.Fatalf("Failed to connect to ZeroMQ pipeline: %v", err)
@@ -29,7 +29,7 @@ func StartFeatureStream(orchestrator *pkcapture.FlowOrchestrator) {
 		
 		payload := map[string]any{
 			"flow_id": batch.ID,
-			"packets": batch.Packets,
+			"features": batch.Features,
 		}
 
 
