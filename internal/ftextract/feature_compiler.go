@@ -1,6 +1,5 @@
 package ftextract
 
-import "fmt"
 
 type Features struct {
 	FwdPktLenMax int16
@@ -19,12 +18,17 @@ type Features struct {
 	// PshFlagCnt int8
 }
 
-func (f *Features)ExractFeatures(length []int, isFwd []bool, timestamp []int64) {
+func (f *Features)ExractFeatures(length []int, isFwd []bool, timestamp []int64) Features{
 	
 	tf := TemporalFeatures{}
 	temp := tf.GetTemporalFeatures(timestamp)
 	// fmt.Print(timestamp, length)	
-	fmt.Print(temp)
+	return Features{
+		FlowIatMean: temp.FlowIatMean,
+		FlowIatSTD: temp.FlowIatSTD,
+		FlowIatMax: temp.FlowIatMax,
+		FwdIatMean: temp.FwdIatMean,
+	}
 
 }
 

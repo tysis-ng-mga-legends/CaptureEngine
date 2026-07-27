@@ -48,15 +48,6 @@ func computeIat(timestamps []int64) []float32 {
 	return iats
 }
 
-// helper function that calculate the mean
-func calculateMean(values []float32) float32 {
-	
-	var sum float32 = 0
-	for _, t := range values {
-		sum += float32(t) 
-	}
-	return sum / float32(len(values))
-}
 
 // helper function that calculates the std
 func calculateStd(mean float32, values []float32) float32{

@@ -23,12 +23,12 @@ func ExtractSpatialFeatures(lengths []int, isFwd []bool) SpatialFeatures {
 		return feats
 	}
 
-	var lFwd []float64
-	var lBwd []float64
-	var lAll []float64
+	var lFwd []float32
+	var lBwd []float32
+	var lAll []float32
 
 	for i, length := range lengths {
-		length := float64(length)
+		length := float32(length)
 		
 		// all lengths are stored for bidirectional calculations
 		lAll = append(lAll, length)
@@ -54,7 +54,7 @@ func ExtractSpatialFeatures(lengths []int, isFwd []bool) SpatialFeatures {
 	return feats
 }
 
-func calculateMin(data []float64) int16 {
+func calculateMin(data []float32) int16 {
 	if len(data) == 0 {
 		return 0
 	}
@@ -67,7 +67,7 @@ func calculateMin(data []float64) int16 {
 	return int16(minval)
 }
 
-func calculateMax(data []float64) int16 {
+func calculateMax(data []float32) int16 {
 	if len(data) == 0 {
 		return 0
 	}
@@ -80,30 +80,30 @@ func calculateMax(data []float64) int16 {
 	return int16(maxval)
 }
 
-func calculateMean(data []float64) float32 {
+func calculateMean(data []float32) float32 {
 	if len(data) == 0 {
 		return 0
 	}
-	var sum float64
+	var sum float32
 	for _, v := range data {
 		sum += v
 	}
-	return float32(sum / float64(len(data)))
+	return float32(sum / float32(len(data)))
 }
 
-func calculateVariance(data []float64) float32 {
+func calculateVariance(data []float32) float32 {
 	n := len(data)
 	if n <= 1 {
 		return 0
 	}
-	mu := float64(calculateMean(data))
-	var sumSquares float64
+	mu := calculateMean(data)
+	var sumSquares float32
 	for _, v := range data {
 		sumSquares += (v - mu) * (v - mu)
 	}
-	return float32(sumSquares / float64(n - 1))
+	return float32(sumSquares / float32(n - 1))
 }
 
-func calculateStdDev(data []float64) float32 {
+func calculateStdDev(data []float32) float32 {
 	return float32(math.Sqrt(float64(calculateVariance(data))))
 }
