@@ -1,5 +1,8 @@
 package ftextract
 
+import (
+	"math"
+)
 
 type Features struct {
 	FwdPktLenMax int16
@@ -18,17 +21,84 @@ type Features struct {
 	// PshFlagCnt int8
 }
 
-func (f *Features)ExractFeatures(length []int, isFwd []bool, timestamp []int64) Features{
-	
-	tf := TemporalFeatures{}
-	temp := tf.GetTemporalFeatures(timestamp)
-	// fmt.Print(timestamp, length)	
-	return Features{
+
+func (f *Features)ExractFeatures(lengths []int, isFwd []bool, timestamp []int64) Features {
+	if len(lengths) == 0 {
+		return Features{}
+	}
+
+	temp := GetTemporalFeatures(timestamp)
+	spatial := ExtractSpatialFeatures(lengths, isFwd)
+
+	return Features {
+		FwdPktLenMax : spatial.FwdPktLenMax,
+		BwdPktLenMax : spatial.BwdPktLenMax,
+		FwdPktLenMin : spatial.FwdPktLenMin,
+		BwdPktLenMin : spatial.BwdPktLenMin,
+		FwdPktLenMean : spatial.FwdPktLenMean,
+		BwdPktLenMean : spatial.BwdPktLenMean,
+		FwdPktLenSTD : spatial.FwdPktLenSTD,
+		BwdPktLenSTD : spatial.BwdPktLenSTD,
+		PktLenVar : spatial.PktLenVar,
 		FlowIatMean: temp.FlowIatMean,
 		FlowIatSTD: temp.FlowIatSTD,
 		FlowIatMax: temp.FlowIatMax,
-		FwdIatMean: temp.FwdIatMean,
+		FwdIatMean: temp.FwdIatMean,			
 	}
-
 }
+
+func calculateMin(data []float32) int16 {
+	if len(data) == 0 {
+		return 0
+	}
+	minval := data[0]
+	for _, v := range data {
+		if v < minval {
+			minval = v
+		}
+	}
+	return int16(minval)
+}
+
+func calculateMax(data []float32) int16 {
+	if len(data) == 0 {
+		return 0
+	}
+	maxval := data[0]
+	for _, v := range data {
+		if v > maxval {
+			maxval = v
+		}
+	}
+	return int16(maxval)
+}
+
+func calculateMean(data []float32) float32 {
+	if len(data) == 0 {
+		return 0
+	}
+	var sum float32
+	for _, v := range data {
+		sum += v
+	}
+	return float32(sum / float32(len(data)))
+}
+
+func calculateVariance(data []float32) float32 {
+	n := len(data)
+	if n <= 1 {
+		return 0
+	}
+	mu := calculateMean(data)
+	var sumSquares float32
+	for _, v := range data {
+		sumSquares += (v - mu) * (v - mu)
+	}
+	return float32(sumSquares / float32(n - 1))
+}
+
+func calculateStdDev(data []float32) float32 {
+	return float32(math.Sqrt(float64(calculateVariance(data))))
+}
+
 

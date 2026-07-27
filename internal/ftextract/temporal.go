@@ -1,7 +1,6 @@
 package ftextract
 
 import (
-	"math"
 	"sort"
 )
 
@@ -14,12 +13,12 @@ type TemporalFeatures struct {
 }
 
 // function that coordinates the functions in this file and returns TemporalFeatures
-func (tf *TemporalFeatures) GetTemporalFeatures(timestamps []int64) TemporalFeatures{
+func GetTemporalFeatures(timestamps []int64) TemporalFeatures{
 
 	iats := computeIat(timestamps)
 	iatMean := calculateMean(iats)
-	iatStd := calculateStd(iatMean, iats)
-	iatMax := findMax(iats)
+	iatStd := calculateStdDev(iats)
+	iatMax := findIatMax(iats)
 
 	return TemporalFeatures{
 		FlowIatMean: iatMean,
@@ -48,29 +47,13 @@ func computeIat(timestamps []int64) []float32 {
 	return iats
 }
 
-
-// helper function that calculates the std
-func calculateStd(mean float32, values []float32) float32{
-	var varianceSum float32 = 0
-
-	for _, t := range values{
-		diff := float32(t) - mean
-		varianceSum += diff * diff
-	}
-
-	return float32(math.Sqrt(float64(varianceSum/float32(len(values)))))
-}
-
 // helper function that finds the max
-func findMax(values []float32) float32 {
-	
+func findIatMax(values []float32) float32 {
 	max := values[0]
-
 	for _, v := range values{
 		if v > max{
 			max = v
 		}
 	}
-
 	return max
 }
