@@ -19,16 +19,17 @@ type Features struct {
 	FlowIatMax float32
 	FwdIatMean float32
 	PshFlagCount uint8
+	ProtoUDP uint8
 }
 
-func ExtractFeatures(lengths []int, isFwd []bool, timestamp []int64, pshFlags []bool) Features {
+func ExtractFeatures(lengths []int, isFwd []bool, timestamp []int64, pshFlags []bool, proto string) Features {
 	if len(lengths) == 0 {
 		return Features{}
 	}
 	var feats Features
 	GetTemporalFeatures(&feats, timestamp, isFwd)
 	ExtractSpatialFeatures(&feats, lengths, isFwd)
-	ExtractSignalingFeatures(&feats, pshFlags)
+	ExtractSignalingFeatures(&feats, pshFlags, proto)
 
 	return feats
 }

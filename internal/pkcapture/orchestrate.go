@@ -6,6 +6,7 @@ import (
 
 type PacketData struct {
     SourceIP  string `json:"source_ip"`
+	Protocol string `json:"proto"`
     Timestamp int64 `json:"timestamp"`
     Length    int    `json:"length"`
 	HasPSH    bool   `json:"has_psh"`
@@ -47,6 +48,7 @@ func (fo *FlowOrchestrator) IncrementPacketCount(flowID FlowID, packet PacketDat
 		isFwd := make([]bool, len(packetBatch))
 		timestamps := make([]int64, len(packetBatch))
 		pshFlags := make([]bool, len(packetBatch))
+		proto := flowID.Protocol
 
 		initiatorIP := packetBatch[0].SourceIP
 		for i, pkt := range packetBatch {
@@ -57,7 +59,7 @@ func (fo *FlowOrchestrator) IncrementPacketCount(flowID FlowID, packet PacketDat
 		}
 
 
-		features := ftextract.ExtractFeatures(lengths, isFwd, timestamps, pshFlags)
+		features := ftextract.ExtractFeatures(lengths, isFwd, timestamps, pshFlags, proto)
 
 		completedBatch := FlowBatch{
 			ID:      canonicalID,
