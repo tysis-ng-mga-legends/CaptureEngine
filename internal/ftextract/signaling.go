@@ -1,10 +1,10 @@
 package ftextract
 
-func ExtractSignalingFeatures(feats *Features, tcpFlags []uint8) {
-	var pshCount float32 = 0
+func ExtractSignalingFeatures(feats *Features, pshFlags []bool) {
+	var pshCount uint8 = 0
 
-	for _, flag := range tcpFlags {
-		if (flagByte & 0x08) != 0 {
+	for _, psh := range pshFlags {
+		if psh {
 			pshCount++
 		}
 	}
