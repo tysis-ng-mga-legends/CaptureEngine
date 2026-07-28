@@ -32,8 +32,14 @@ func PacketCapture(device string, snaplen int32, promisc bool, timeout int, orch
 		if flowID.Protocol == "" {
 			continue
 		}
+		
+		var hasPSH bool 
+		if tcpLayer := packet.Layer(layers.LayerTypeTCP); tcpLayer != nil {
+			tcp, _ := tcpLayer.(*layers.TCP)
+			hasPSH = (tcp.PSH)
+		}
 
-		orchestrator.IncrementPacketCount(flowID, PacketData{SourceIP: flowID.SrcIP, Timestamp: int64(metadata.Timestamp.UnixMicro()), Length: metadata.Length})
+		orchestrator.IncrementPacketCount(flowID, PacketData{SourceIP: flowID.SrcIP, Timestamp: int64(metadata.Timestamp.UnixMicro()), Length: metadata.Length, HasPSH: hasPSH})
 
 	}
 

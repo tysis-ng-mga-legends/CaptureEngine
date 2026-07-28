@@ -8,6 +8,7 @@ type PacketData struct {
     SourceIP  string `json:"source_ip"`
     Timestamp int64 `json:"timestamp"`
     Length    int    `json:"length"`
+	HasPSH    bool   `json:"has_psh"`
 }
 type FlowBatch struct {
 	ID      FlowID              `json:"flow_id"`
@@ -35,6 +36,7 @@ func (fo *FlowOrchestrator) IncrementPacketCount(flowID FlowID, packet PacketDat
 		SourceIP:  packet.SourceIP,
 		Timestamp: packet.Timestamp,
 		Length:    packet.Length,
+		HasPSH:    packet.HasPSH,
 	})
 
 	if len(fo.ActiveSequence[canonicalID]) == 7 {
@@ -44,16 +46,18 @@ func (fo *FlowOrchestrator) IncrementPacketCount(flowID FlowID, packet PacketDat
 		lengths := make([]int, len(packetBatch))
 		isFwd := make([]bool, len(packetBatch))
 		timestamps := make([]int64, len(packetBatch))
+		pshFlags := make([]bool, len(packetBatch))
 
 		initiatorIP := packetBatch[0].SourceIP
 		for i, pkt := range packetBatch {
 			lengths[i] = pkt.Length
 			isFwd[i] = pkt.SourceIP == initiatorIP
 			timestamps[i] = pkt.Timestamp
+			pshFlags[i] = pkt.HasPSH
 		}
 
 
-		features := ftextract.ExtractFeatures(lengths, isFwd, timestamps)
+		features := ftextract.ExtractFeatures(lengths, isFwd, timestamps, pshFlags)
 
 		completedBatch := FlowBatch{
 			ID:      canonicalID,
