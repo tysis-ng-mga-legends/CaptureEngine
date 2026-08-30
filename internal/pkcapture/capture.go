@@ -49,11 +49,13 @@ func PacketCapture(device string, snaplen int32, promisc bool, timeout int, orch
 // This function extracts the 5-tuple (source IP, destination IP, source port, destination port, protocol) from a given packet.
 func CaptureFiveTuples(packet gopacket.Packet) (flowID FlowID) {
 
-	if netlayer := packet.NetworkLayer() ; netlayer != nil {
-		netflow := netlayer.NetworkFlow()
-		flowID.SrcIP = netflow.Src().String()
-		flowID.DstIP = netflow.Dst().String()
+	netlayer := packet.NetworkLayer()
+	if netlayer == nil {
+		return flowID
 	}
+	netflow := netlayer.NetworkFlow()
+	flowID.SrcIP = netflow.Src().String()
+	flowID.DstIP = netflow.Dst().String()
 
 
 	if tcpLayer := packet.Layer(layers.LayerTypeTCP); tcpLayer != nil {

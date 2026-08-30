@@ -19,7 +19,7 @@ func isTLS(payload []byte) bool {
 
 	recordLen := int(payload[3]) << 8 | int(payload[4])
 
-	return recordLen > 0 && recordLen < 18432
+	return recordLen > 0 && recordLen <= 18432
 }
 
 func isQUIC(payload []byte) bool {
@@ -43,8 +43,8 @@ func isQUIC(payload []byte) bool {
 
 		version :=  uint32(payload[1]) << 24 | uint32(payload[2]) << 16 | uint32(payload[3]) << 8 | uint32(payload[4])
 
-		return version == 0x00000001 || version == 0x6b3343cf || (version&0xff000000) == 0xff000000 ||
-		       (version&0xff000000) == 0x51000000
+		return version == 0x00000001 || version == 0x6b3343cf || (version & 0xff000000) == 0xff000000 ||
+		       (version & 0xff000000) == 0x51000000
 
 	}
 
