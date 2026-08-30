@@ -32,7 +32,6 @@ func PacketCapture(device string, snaplen int32, promisc bool, timeout int, orch
 		if !isAppData {
 			continue
 		}
-		flowID.Protocol = string(ProtoType)
 
 		packetData :=  PacketData{
 			SourceIP: flowID.SrcIP,

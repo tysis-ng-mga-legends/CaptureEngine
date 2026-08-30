@@ -2,7 +2,7 @@ package pkcapture
 
 import (
 	"capture_engine/internal/ftextract"
-	// "fmt"
+	"fmt"
 )
 
 type PacketData struct {
@@ -41,14 +41,14 @@ func (fo *FlowOrchestrator) IncrementPacketCount(flowID FlowID, packet PacketDat
 	
 		packetBatch := fo.ActiveSequence[canonicalID]
 
-		// resolvedProto := canonicalID.Protocol 
-		// for _, p := range packetBatch{
-		// 	if p.Protocol == "TLS" || p.Protocol == "QUIC" {
-		// 		resolvedProto = p.Protocol
-		// 		break
-		// 	}
-		// 	fmt.Println(p.Protocol)
-		// }
+		resolvedProto := canonicalID.Protocol 
+		for _, p := range packetBatch{
+			if p.Protocol == "TLS" || p.Protocol == "QUIC" {
+				resolvedProto = p.Protocol
+				break
+			}
+			fmt.Println(p.Protocol)
+		}
 
 		lengths := make([]int, len(packetBatch))
 		isFwd := make([]bool, len(packetBatch))
@@ -64,11 +64,11 @@ func (fo *FlowOrchestrator) IncrementPacketCount(flowID FlowID, packet PacketDat
 		}
 
 
-		features := ftextract.ExtractFeatures(lengths, isFwd, timestamps, pshFlags, flowID.Protocol)
+		features := ftextract.ExtractFeatures(lengths, isFwd, timestamps, pshFlags, resolvedProto)
 
 		completedBatch := FlowBatch{
 			ID:      canonicalID,
-			Protocol: flowID.Protocol,
+			Protocol: resolvedProto,
 			Features: features,
 		}
 		
