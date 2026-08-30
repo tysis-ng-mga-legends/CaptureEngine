@@ -72,6 +72,12 @@ func CaptureFiveTuples(packet gopacket.Packet) (flowID FlowID) {
 		flowID.SrcPort = uint16(udp.SrcPort)
 		flowID.DstPort = uint16(udp.DstPort)
 		flowID.Protocol = "UDP"
+
+		if appLayer := packet.ApplicationLayer(); appLayer != nil {
+			if isQUIC(appLayer.Payload()) {
+				flowID.Protocol = "QUIC"
+			}
+		}
 	}
 	
 	return flowID
