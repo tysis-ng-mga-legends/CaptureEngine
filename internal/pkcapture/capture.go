@@ -55,38 +55,25 @@ func CaptureFiveTuples(packet gopacket.Packet) (flowID FlowID) {
 		flowID.DstIP = netflow.Dst().String()
 	}
 
-	hasTCP := false
-	hasUDP := false
 
 	if tcpLayer := packet.Layer(layers.LayerTypeTCP); tcpLayer != nil {
 		tcp, _ := tcpLayer.(*layers.TCP)
 		flowID.SrcPort = uint16(tcp.SrcPort)
 		flowID.DstPort = uint16(tcp.DstPort)
 		flowID.Protocol = "TCP"
-		hasTCP = true
+
+		if appLayer :=  packet.ApplicationLayer(); appLayer != nil {
+			if isTLS(appLayer.Payload()){
+				flowID.Protocol = "TLS"
+			}
+		}
 	} else if udpLayer := packet.Layer(layers.LayerTypeUDP); udpLayer != nil {
 		udp, _ := udpLayer.(*layers.UDP)
 		flowID.SrcPort = uint16(udp.SrcPort)
 		flowID.DstPort = uint16(udp.DstPort)
 		flowID.Protocol = "UDP"
-		hasUDP = true
 	}
 	
-	if hasTCP {
-		// If it has TCP, check if there is a TLS payload inside it
-		if tlsLayer := packet.Layer(layers.LayerTypeTLS); tlsLayer != nil {
-			flowID.Protocol = "TLS"
-		}
-	} else if hasUDP {
-		// If it has UDP, check if it is QUIC
-		// Note: QUIC packets are encrypted from the first packet, so standard gopacket 
-		// doesn't have a default "LayerTypeQUIC" parser. 
-		// Industry standard check: UDP traffic on Port 443 is almost always QUIC.
-		if flowID.SrcPort == 443 || flowID.DstPort == 443 {
-			flowID.Protocol = "QUIC"
-		}
-	}
-
 	return flowID
 }
 
