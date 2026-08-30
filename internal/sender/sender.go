@@ -29,6 +29,7 @@ func StartFeatureStream(orchestrator *pkcapture.FlowOrchestrator) {
 		
 		payload := map[string]any{
 			"flow_id": batch.ID,
+			"protocol": batch.Protocol,
 			"features": batch.Features,
 		}
 
@@ -45,7 +46,7 @@ func StartFeatureStream(orchestrator *pkcapture.FlowOrchestrator) {
 		if err != nil{
 			log.Printf("Error pushing to ZeroMQ: %v", err)
 		} else {
-			fmt.Printf("[ZMQ SENDER] Exported flow window for %s:%d -> %s\n", batch.ID.SrcIP, batch.ID.SrcPort, batch.ID.Protocol)
+			fmt.Printf("[ZMQ SENDER] Exported flow window for %s:%d -> %s\n", batch.ID.SrcIP, batch.ID.SrcPort, batch.Protocol)
 		}
 		
 	}  

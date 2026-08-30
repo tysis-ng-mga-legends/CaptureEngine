@@ -2,6 +2,14 @@ package pkcapture
 
 import "github.com/google/gopacket/layers"
 
+type ProtocolType string
+
+const (
+	ProtoTLS ProtocolType = "TLS"
+	ProtoTCP ProtocolType = "TCP"
+	ProtoQUIC ProtocolType = "QUIC"
+	ProtoUDP ProtocolType = "UDP"
+)
 // 1. Structural Invariant Dissectors
 
 func isTLS(payload []byte) bool {
@@ -65,7 +73,7 @@ func isTLSAppData(payload []byte) bool {
 }
 
 func isPlainTCPAppData(tcp *layers.TCP) bool {
-	if tcp.SYN || tcp.ACK || tcp.FIN || len(tcp.Payload) == 0 {
+	if tcp.SYN || tcp.RST || tcp.FIN || len(tcp.Payload) == 0 {
 		return false
 	}
 
@@ -79,4 +87,6 @@ func isQUICAppData(payload []byte) bool {
 
 	return (payload[0] & 0x80) == 0
 }
+
+
 

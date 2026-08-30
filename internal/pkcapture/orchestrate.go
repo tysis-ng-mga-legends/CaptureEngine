@@ -2,6 +2,7 @@ package pkcapture
 
 import (
 	"capture_engine/internal/ftextract"
+	// "fmt"
 )
 
 type PacketData struct {
@@ -13,6 +14,7 @@ type PacketData struct {
 }
 type FlowBatch struct {
 	ID      FlowID              `json:"flow_id"`
+	Protocol string 			`json:"protocol"`
 	Features ftextract.Features  `json:"features"`
 }
 
@@ -33,22 +35,25 @@ func NewOrchestrator() *FlowOrchestrator {
 func (fo *FlowOrchestrator) IncrementPacketCount(flowID FlowID, packet PacketData) {
 
 	canonicalID := flowID.GetNormalized()
-	fo.ActiveSequence[canonicalID] = append(fo.ActiveSequence[canonicalID], PacketData{
-		SourceIP:  packet.SourceIP,
-		Timestamp: packet.Timestamp,
-		Length:    packet.Length,
-		HasPSH:    packet.HasPSH,
-	})
+	fo.ActiveSequence[canonicalID] = append(fo.ActiveSequence[canonicalID], packet)
 
 	if len(fo.ActiveSequence[canonicalID]) == 7 {
 	
 		packetBatch := fo.ActiveSequence[canonicalID]
-		
+
+		// resolvedProto := canonicalID.Protocol 
+		// for _, p := range packetBatch{
+		// 	if p.Protocol == "TLS" || p.Protocol == "QUIC" {
+		// 		resolvedProto = p.Protocol
+		// 		break
+		// 	}
+		// 	fmt.Println(p.Protocol)
+		// }
+
 		lengths := make([]int, len(packetBatch))
 		isFwd := make([]bool, len(packetBatch))
 		timestamps := make([]int64, len(packetBatch))
 		pshFlags := make([]bool, len(packetBatch))
-		proto := flowID.Protocol
 
 		initiatorIP := packetBatch[0].SourceIP
 		for i, pkt := range packetBatch {
@@ -59,10 +64,11 @@ func (fo *FlowOrchestrator) IncrementPacketCount(flowID FlowID, packet PacketDat
 		}
 
 
-		features := ftextract.ExtractFeatures(lengths, isFwd, timestamps, pshFlags, proto)
+		features := ftextract.ExtractFeatures(lengths, isFwd, timestamps, pshFlags, flowID.Protocol)
 
 		completedBatch := FlowBatch{
 			ID:      canonicalID,
+			Protocol: flowID.Protocol,
 			Features: features,
 		}
 		

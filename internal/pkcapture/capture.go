@@ -27,19 +27,21 @@ func PacketCapture(device string, snaplen int32, promisc bool, timeout int, orch
 	for packet := range packetSource.Packets() {
 		
 		metadata := packet.Metadata()
-		flowID := CaptureFiveTuples(packet)
+		flowID, ProtoType, hasPSH, isAppData := ClassifyAndFilterPacket(packet)
 
-		if flowID.Protocol == "" {
+		if !isAppData {
 			continue
 		}
-		
-		var hasPSH bool 
-		if tcpLayer := packet.Layer(layers.LayerTypeTCP); tcpLayer != nil {
-			tcp, _ := tcpLayer.(*layers.TCP)
-			hasPSH = (tcp.PSH)
-		}
+		flowID.Protocol = string(ProtoType)
 
-		orchestrator.IncrementPacketCount(flowID, PacketData{SourceIP: flowID.SrcIP, Timestamp: int64(metadata.Timestamp.UnixMicro()), Length: metadata.Length, HasPSH: hasPSH})
+		packetData :=  PacketData{
+			SourceIP: flowID.SrcIP,
+			Protocol: string(ProtoType),
+			Timestamp: int64(metadata.Timestamp.UnixMicro()),
+			Length: metadata.Length,
+			HasPSH: hasPSH,
+		}
+		orchestrator.IncrementPacketCount(flowID, packetData)
 
 	}
 
@@ -47,11 +49,11 @@ func PacketCapture(device string, snaplen int32, promisc bool, timeout int, orch
 }
 
 // This function extracts the 5-tuple (source IP, destination IP, source port, destination port, protocol) from a given packet.
-func CaptureFiveTuples(packet gopacket.Packet) (flowID FlowID) {
-
+func ClassifyAndFilterPacket(packet gopacket.Packet) (FlowID, ProtocolType, bool, bool) {
+	var flowID FlowID
 	netlayer := packet.NetworkLayer()
 	if netlayer == nil {
-		return flowID
+		return flowID, "", false, false
 	}
 	netflow := netlayer.NetworkFlow()
 	flowID.SrcIP = netflow.Src().String()
@@ -64,24 +66,44 @@ func CaptureFiveTuples(packet gopacket.Packet) (flowID FlowID) {
 		flowID.DstPort = uint16(tcp.DstPort)
 		flowID.Protocol = "TCP"
 
-		if appLayer :=  packet.ApplicationLayer(); appLayer != nil {
-			if isTLS(appLayer.Payload()){
-				flowID.Protocol = "TLS"
-			}
+		payload := tcp.Payload
+		hasPSH := tcp.PSH
+
+		if isTLS(payload){
+			if isTLSAppData(payload) {
+				return flowID, ProtoTLS, hasPSH, true
+			} 
+			return flowID, ProtoTLS, hasPSH, false
 		}
+		
+		if isPlainTCPAppData(tcp) {
+			return flowID, ProtoTCP, hasPSH, true
+		}
+
+		return flowID, ProtoTCP, hasPSH, false
+
 	} else if udpLayer := packet.Layer(layers.LayerTypeUDP); udpLayer != nil {
 		udp, _ := udpLayer.(*layers.UDP)
 		flowID.SrcPort = uint16(udp.SrcPort)
 		flowID.DstPort = uint16(udp.DstPort)
 		flowID.Protocol = "UDP"
 
-		if appLayer := packet.ApplicationLayer(); appLayer != nil {
-			if isQUIC(appLayer.Payload()) {
-				flowID.Protocol = "QUIC"
+		payload := udp.Payload
+
+		if isQUIC(payload) {
+			if isQUICAppData(payload) {
+				return flowID, ProtoQUIC, false, true
 			}
+			return flowID, ProtoQUIC, false, false
 		}
+		
+		if len(payload) > 0 {
+			return flowID, ProtoUDP, false, true
+		}
+
+		return flowID, ProtoUDP, false, false
 	}
 	
-	return flowID
+	return flowID, "", false, false
 }
 
