@@ -5,6 +5,20 @@ import (
 )
 
 type Features struct {
+
+	FrameLenMean float32
+	FrameLenStd float32
+	FrameLenMin float32
+	FrameLenMax float32
+	FrameLenCV float32
+
+	PayloadLenMean float32
+	PayloadLenStd float32
+	PayloadLenMin float32
+	PayloadLenMax float32
+	PayloadLenSum float32
+	PayloadLenCV float32
+
 	FwdPktLenMax int16
 	BwdPktLenMax int16
 	FwdPktLenMin int16
@@ -22,13 +36,28 @@ type Features struct {
 	ProtoUDP uint8
 }
 
-func ExtractFeatures(lengths []int, isFwd []bool, timestamp []int64, pshFlags []bool, proto string) Features {
-	if len(lengths) == 0 {
+func ExtractFeatures(frameLens []float32, payloadLens []float32, isFwd []bool, timestamp []int64, pshFlags []bool, proto string) Features {
+	if len(frameLens) == 0 {
 		return Features{}
 	}
 	var feats Features
+
+	frameFeats := ExtractFrameFeatures(frameLens)
+	feats.FrameLenMean = frameFeats.Mean
+	feats.FrameLenStd = frameFeats.Std
+	feats.FrameLenMin = frameFeats.Min
+	feats.FrameLenMax = frameFeats.Max
+	feats.FrameLenCV = frameFeats.CV
+
+	payloadStats := CalcStats(payloadLens)
+	feats.PayloadLenMean = payloadStats.Mean
+	feats.PayloadLenStd = payloadStats.Std
+	feats.PayloadLenMin = payloadStats.Min
+	feats.PayloadLenMax = payloadStats.Max
+	feats.PayloadLenSum = payloadStats.Sum
+	feats.PayloadLenCV = payloadStats.CV
+
 	GetTemporalFeatures(&feats, timestamp, isFwd)
-	ExtractSpatialFeatures(&feats, lengths, isFwd)
 	ExtractSignalingFeatures(&feats, pshFlags, proto)
 
 	return feats

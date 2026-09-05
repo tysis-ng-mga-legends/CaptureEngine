@@ -10,11 +10,11 @@ import (
 
 func main() {
 
-	device := "wlan0"
+	device := "eth0"
 	snaplen := int32(1024)
 	promisc := false
 	timeout := 1 * time.Second
-	
+
 	
 	orchestrator := pkcapture.NewOrchestrator()
 

@@ -27,7 +27,7 @@ func PacketCapture(device string, snaplen int32, promisc bool, timeout int, orch
 	for packet := range packetSource.Packets() {
 		
 		metadata := packet.Metadata()
-		flowID, ProtoType, hasPSH, isAppData := ClassifyAndFilterPacket(packet)
+		flowID, ProtoType, hasPSH, isAppData, payloadLen := ClassifyAndFilterPacket(packet)
 
 		if !isAppData {
 			continue
@@ -35,9 +35,11 @@ func PacketCapture(device string, snaplen int32, promisc bool, timeout int, orch
 
 		packetData :=  PacketData{
 			SourceIP: flowID.SrcIP,
+			SourcePort: flowID.SrcPort,
 			Protocol: string(ProtoType),
 			Timestamp: int64(metadata.Timestamp.UnixMicro()),
 			Length: metadata.Length,
+			PayloadLen: payloadLen,
 			HasPSH: hasPSH,
 		}
 		orchestrator.IncrementPacketCount(flowID, packetData)
@@ -48,11 +50,11 @@ func PacketCapture(device string, snaplen int32, promisc bool, timeout int, orch
 }
 
 // This function extracts the 5-tuple (source IP, destination IP, source port, destination port, protocol) from a given packet.
-func ClassifyAndFilterPacket(packet gopacket.Packet) (FlowID, ProtocolType, bool, bool) {
+func ClassifyAndFilterPacket(packet gopacket.Packet) (FlowID, ProtocolType, bool, bool, int) {
 	var flowID FlowID
 	netlayer := packet.NetworkLayer()
 	if netlayer == nil {
-		return flowID, "", false, false
+		return flowID, "", false, false, 0
 	}
 	netflow := netlayer.NetworkFlow()
 	flowID.SrcIP = netflow.Src().String()
@@ -66,20 +68,21 @@ func ClassifyAndFilterPacket(packet gopacket.Packet) (FlowID, ProtocolType, bool
 		flowID.Protocol = "TCP"
 
 		payload := tcp.Payload
+		payloadLen := len(payload)
 		hasPSH := tcp.PSH
 
 		if isTLS(payload){
 			if isTLSAppData(payload) {
-				return flowID, ProtoTLS, hasPSH, true
+				return flowID, ProtoTLS, hasPSH, true, payloadLen
 			} 
-			return flowID, ProtoTLS, hasPSH, false
+			return flowID, ProtoTLS, hasPSH, false, payloadLen
 		}
 		
 		if isPlainTCPAppData(tcp) {
-			return flowID, ProtoTCP, hasPSH, true
+			return flowID, ProtoTCP, hasPSH, true, payloadLen
 		}
 
-		return flowID, ProtoTCP, hasPSH, false
+		return flowID, ProtoTCP, hasPSH, false, payloadLen
 
 	} else if udpLayer := packet.Layer(layers.LayerTypeUDP); udpLayer != nil {
 		udp, _ := udpLayer.(*layers.UDP)
@@ -88,21 +91,22 @@ func ClassifyAndFilterPacket(packet gopacket.Packet) (FlowID, ProtocolType, bool
 		flowID.Protocol = "UDP"
 
 		payload := udp.Payload
+		payloadLen := len(payload)
 
 		if isQUIC(payload) {
 			if isQUICAppData(payload) {
-				return flowID, ProtoQUIC, false, true
+				return flowID, ProtoQUIC, false, true, payloadLen
 			}
-			return flowID, ProtoQUIC, false, false
+			return flowID, ProtoQUIC, false, false, payloadLen
 		}
 		
 		if len(payload) > 0 {
-			return flowID, ProtoUDP, false, true
+			return flowID, ProtoUDP, false, true, payloadLen
 		}
 
-		return flowID, ProtoUDP, false, false
+		return flowID, ProtoUDP, false, false, payloadLen
 	}
 	
-	return flowID, "", false, false
+	return flowID, "", false, false, 0
 }
 
