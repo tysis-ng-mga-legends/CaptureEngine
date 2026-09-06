@@ -19,21 +19,19 @@ type Features struct {
 	PayloadLenSum float32
 	PayloadLenCV float32
 
-	FwdPktLenMax int16
-	BwdPktLenMax int16
-	FwdPktLenMin int16
-	BwdPktLenMin int16
-	FwdPktLenMean float32
-	BwdPktLenMean float32
-	FwdPktLenSTD float32
-	BwdPktLenSTD float32
-	PktLenVar float32
-	FlowIatMean float32
-	FlowIatSTD float32
-	FlowIatMax float32
-	FwdIatMean float32
-	PshFlagCount uint8
-	ProtoUDP uint8
+	Duration float32
+	IatMean float32
+	IatStd float32
+	IatMin float32
+	IatMax float32
+	IatCV float32
+
+	FwdPackets float32
+	RetPackets float32
+	FwdPayLoadBytes float32
+	RevPayLoadBytes float32
+	DirNormAsymPackets float32
+	DirNormAsymBytes float32
 }
 
 func ExtractFeatures(frameLens []float32, payloadLens []float32, isFwd []bool, timestamp []int64, pshFlags []bool, proto string) Features {
@@ -57,7 +55,8 @@ func ExtractFeatures(frameLens []float32, payloadLens []float32, isFwd []bool, t
 	feats.PayloadLenSum = payloadStats.Sum
 	feats.PayloadLenCV = payloadStats.CV
 
-	GetTemporalFeatures(&feats, timestamp, isFwd)
+	GetTemporalFeatures(&feats, timestamp)
+	GetDirectionalFeatures(&feats, isFwd, payloadLens)
 	ExtractSignalingFeatures(&feats, pshFlags, proto)
 
 	return feats
