@@ -1,5 +1,6 @@
-package ftextract
+//go:build ignore
 
+package ftextract
 
 func ExtractSignalingFeatures(feats *Features, pshFlags []bool, proto string) {
 	var pshCount uint8 = 0

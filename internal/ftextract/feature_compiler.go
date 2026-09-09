@@ -27,9 +27,9 @@ type Features struct {
 	IatCV float32
 
 	FwdPackets float32
-	RetPackets float32
-	FwdPayLoadBytes float32
-	RevPayLoadBytes float32
+	RevPackets float32
+	FwdPayloadBytes float32
+	RevPayloadBytes float32
 	DirNormAsymPackets float32
 	DirNormAsymBytes float32
 }

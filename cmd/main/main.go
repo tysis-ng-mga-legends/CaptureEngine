@@ -19,7 +19,7 @@ func main() {
 	orchestrator := pkcapture.NewOrchestrator()
 
 	go sender.StartFeatureStream(orchestrator)
-	err := pkcapture.PacketCapture(device, snaplen, promisc, int(timeout.Seconds()), orchestrator)
+	err := pkcapture.PacketCapture(device, snaplen, promisc, timeout, orchestrator)
 	if err != nil {
 		log.Fatalf("Error capturing packets: %v", err)
 	}

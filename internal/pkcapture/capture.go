@@ -11,10 +11,9 @@ import (
 )
 
 // This function captures packets from the specified network device and processes them using the FlowOrchestrator.
-func PacketCapture(device string, snaplen int32, promisc bool, timeout int, orchestrator *FlowOrchestrator) error {
+func PacketCapture(device string, snaplen int32, promisc bool, timeout time.Duration, orchestrator *FlowOrchestrator) error {
 
-	handle, err := pcap.OpenLive(device, snaplen, promisc, time.Duration(timeout))
-
+	handle, err := pcap.OpenLive(device, snaplen, promisc, timeout) 
 	
 	if err != nil {
 		log.Fatal(err)

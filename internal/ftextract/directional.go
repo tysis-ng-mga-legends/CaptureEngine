@@ -22,8 +22,8 @@ func GetDirectionalFeatures(feats *Features, isFwd []bool, payloadLens []float32
 
 	feats.FwdPackets = fwdPkts
 	feats.RevPackets = revPkts
-	feats.FwdPayLoadBytes = fwdBytes
-	feats.RevPayLoadBytes = revBytes
+	feats.FwdPayloadBytes = fwdBytes
+	feats.RevPayloadBytes = revBytes
 
 	totalPkts := fwdPkts + revPkts
 	if totalPkts > 0 {
