@@ -35,7 +35,7 @@ func NewOrchestrator() *FlowOrchestrator {
 func (fo *FlowOrchestrator) IncrementPacketCount(flowID FlowID, packet PacketData) {
 	canonicalID := flowID.GetNormalized()
 
-	// 1. Guard against unbounded slice growth (memory leak)
+	// Guard against unbounded slice growth (memory leak)
 	if len(fo.ActiveSequence[canonicalID]) >= 7 {
 		return
 	}
@@ -45,7 +45,7 @@ func (fo *FlowOrchestrator) IncrementPacketCount(flowID FlowID, packet PacketDat
 	if len(fo.ActiveSequence[canonicalID]) == 7 {
 		packetBatch := fo.ActiveSequence[canonicalID]
 
-		// 2. Resolve protocol
+		// Resolve protocol
 		resolvedProto := canonicalID.Protocol
 		for _, p := range packetBatch {
 			if p.Protocol == "TLS" || p.Protocol == "QUIC" {
@@ -54,7 +54,7 @@ func (fo *FlowOrchestrator) IncrementPacketCount(flowID FlowID, packet PacketDat
 			}
 		}
 
-		// 3. Single loop to extract raw arrays
+		// Single loop to extract raw arrays
 		frameLens := make([]float32, 7)
 		payloadLens := make([]float32, 7)
 		isFwd := make([]bool, 7)
@@ -72,7 +72,7 @@ func (fo *FlowOrchestrator) IncrementPacketCount(flowID FlowID, packet PacketDat
 			pshFlags[i] = pkt.HasPSH
 		}
 
-		// 4. Pass frameLens into the compiler
+		// Pass frameLens into the compiler
 		features := ftextract.ExtractFeatures(frameLens, payloadLens, isFwd, timestamps, pshFlags, resolvedProto)
 
 		completedBatch := FlowBatch{
