@@ -11,7 +11,6 @@ type PacketData struct {
 	Timestamp  int64  `json:"timestamp"`
 	Length     int    `json:"length"`
 	PayloadLen int    `json:"payload_len"`
-	HasPSH     bool   `json:"has_psh"`
 }
 
 type FlowBatch struct {
@@ -59,7 +58,6 @@ func (fo *FlowOrchestrator) IncrementPacketCount(flowID FlowID, packet PacketDat
 		payloadLens := make([]float32, 7)
 		isFwd := make([]bool, 7)
 		timestamps := make([]int64, 7)
-		pshFlags := make([]bool, 7)
 
 		initiatorIP := packetBatch[0].SourceIP
 		initiatorPort := packetBatch[0].SourcePort
@@ -69,11 +67,11 @@ func (fo *FlowOrchestrator) IncrementPacketCount(flowID FlowID, packet PacketDat
 			payloadLens[i] = float32(pkt.PayloadLen)
 			isFwd[i] = (pkt.SourceIP == initiatorIP && pkt.SourcePort == initiatorPort)
 			timestamps[i] = pkt.Timestamp
-			pshFlags[i] = pkt.HasPSH
+
 		}
 
 		// Pass frameLens into the compiler
-		features := ftextract.ExtractFeatures(frameLens, payloadLens, isFwd, timestamps, pshFlags, resolvedProto)
+		features := ftextract.ExtractFeatures(frameLens, payloadLens, isFwd, timestamps)
 
 		completedBatch := FlowBatch{
 			ID:       canonicalID,

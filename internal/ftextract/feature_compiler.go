@@ -34,7 +34,7 @@ type Features struct {
 	DirNormAsymBytes float32
 }
 
-func ExtractFeatures(frameLens []float32, payloadLens []float32, isFwd []bool, timestamp []int64, pshFlags []bool, proto string) Features {
+func ExtractFeatures(frameLens []float32, payloadLens []float32, isFwd []bool, timestamp []int64) Features {
 	if len(frameLens) == 0 {
 		return Features{}
 	}
@@ -57,7 +57,6 @@ func ExtractFeatures(frameLens []float32, payloadLens []float32, isFwd []bool, t
 
 	GetTemporalFeatures(&feats, timestamp)
 	GetDirectionalFeatures(&feats, isFwd, payloadLens)
-	ExtractSignalingFeatures(&feats, pshFlags, proto)
 
 	return feats
 }
