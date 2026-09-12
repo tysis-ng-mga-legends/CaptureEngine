@@ -10,12 +10,10 @@ import (
 	"github.com/google/gopacket/pcap"
 )
 
-// This function captures packets from the specified network device and processes them using the FlowOrchestrator.
-func PacketCapture(device string, snaplen int32, promisc bool, timeout int, orchestrator *FlowOrchestrator) error {
+// PacketCapture captures packets from the specified network device and processes them using the FlowOrchestrator.
+func PacketCapture(device string, snaplen int32, promisc bool, timeout time.Duration, orchestrator *FlowOrchestrator) error {
 
-	handle, err := pcap.OpenLive(device, snaplen, promisc, time.Duration(timeout))
-
-	
+	handle, err := pcap.OpenLive(device, snaplen, promisc, timeout)
 	if err != nil {
 		log.Fatal(err)
 		return fmt.Errorf("error opening device %s: %v", device, err)
@@ -23,22 +21,23 @@ func PacketCapture(device string, snaplen int32, promisc bool, timeout int, orch
 
 	defer handle.Close()
 	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
-	
+
 	for packet := range packetSource.Packets() {
-		
+
 		metadata := packet.Metadata()
-		flowID, ProtoType, hasPSH, isAppData := ClassifyAndFilterPacket(packet)
+		flowID, ProtoType, isAppData, payloadLen := ClassifyAndFilterPacket(packet)
 
 		if !isAppData {
 			continue
 		}
 
-		packetData :=  PacketData{
-			SourceIP: flowID.SrcIP,
-			Protocol: string(ProtoType),
-			Timestamp: int64(metadata.Timestamp.UnixMicro()),
-			Length: metadata.Length,
-			HasPSH: hasPSH,
+		packetData := PacketData{
+			SourceIP:   flowID.SrcIP,
+			SourcePort: flowID.SrcPort,
+			Protocol:   string(ProtoType),
+			Timestamp:  int64(metadata.Timestamp.UnixMicro()),
+			Length:     metadata.Length,
+			PayloadLen: payloadLen,
 		}
 		orchestrator.IncrementPacketCount(flowID, packetData)
 
@@ -47,17 +46,16 @@ func PacketCapture(device string, snaplen int32, promisc bool, timeout int, orch
 	return nil
 }
 
-// This function extracts the 5-tuple (source IP, destination IP, source port, destination port, protocol) from a given packet.
-func ClassifyAndFilterPacket(packet gopacket.Packet) (FlowID, ProtocolType, bool, bool) {
+// ClassifyAndFilterPacket extracts the 5-tuple, protocol type, application-data flag, and payload length from a packet.
+func ClassifyAndFilterPacket(packet gopacket.Packet) (FlowID, ProtocolType, bool, int) {
 	var flowID FlowID
 	netlayer := packet.NetworkLayer()
 	if netlayer == nil {
-		return flowID, "", false, false
+		return flowID, "", false, 0
 	}
 	netflow := netlayer.NetworkFlow()
 	flowID.SrcIP = netflow.Src().String()
 	flowID.DstIP = netflow.Dst().String()
-
 
 	if tcpLayer := packet.Layer(layers.LayerTypeTCP); tcpLayer != nil {
 		tcp, _ := tcpLayer.(*layers.TCP)
@@ -66,20 +64,20 @@ func ClassifyAndFilterPacket(packet gopacket.Packet) (FlowID, ProtocolType, bool
 		flowID.Protocol = "TCP"
 
 		payload := tcp.Payload
-		hasPSH := tcp.PSH
+		payloadLen := len(payload)
 
-		if isTLS(payload){
+		if isTLS(payload) {
 			if isTLSAppData(payload) {
-				return flowID, ProtoTLS, hasPSH, true
-			} 
-			return flowID, ProtoTLS, hasPSH, false
-		}
-		
-		if isPlainTCPAppData(tcp) {
-			return flowID, ProtoTCP, hasPSH, true
+				return flowID, ProtoTLS, true, payloadLen
+			}
+			return flowID, ProtoTLS, false, payloadLen
 		}
 
-		return flowID, ProtoTCP, hasPSH, false
+		if isPlainTCPAppData(tcp) {
+			return flowID, ProtoTCP, true, payloadLen
+		}
+
+		return flowID, ProtoTCP, false, payloadLen
 
 	} else if udpLayer := packet.Layer(layers.LayerTypeUDP); udpLayer != nil {
 		udp, _ := udpLayer.(*layers.UDP)
@@ -88,21 +86,21 @@ func ClassifyAndFilterPacket(packet gopacket.Packet) (FlowID, ProtocolType, bool
 		flowID.Protocol = "UDP"
 
 		payload := udp.Payload
+		payloadLen := len(payload)
 
 		if isQUIC(payload) {
 			if isQUICAppData(payload) {
-				return flowID, ProtoQUIC, false, true
+				return flowID, ProtoQUIC, true, payloadLen
 			}
-			return flowID, ProtoQUIC, false, false
+			return flowID, ProtoQUIC, false, payloadLen
 		}
-		
+
 		if len(payload) > 0 {
-			return flowID, ProtoUDP, false, true
+			return flowID, ProtoUDP, true, payloadLen
 		}
 
-		return flowID, ProtoUDP, false, false
+		return flowID, ProtoUDP, false, payloadLen
 	}
-	
-	return flowID, "", false, false
-}
 
+	return flowID, "", false, 0
+}
