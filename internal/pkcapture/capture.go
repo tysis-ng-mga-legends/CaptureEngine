@@ -22,6 +22,13 @@ func PacketCapture(device string, snaplen int32, promisc bool, timeout int, orch
 	}
 
 	defer handle.Close()
+
+	// Apply BPF filter: ignore local broadcasts, ARPs, and management chatter
+	err = handle.SetBPFFilter("ip and not broadcast and not multicast")
+	if err != nil {
+		log.Printf("Warning: failed to set BPF filter: %v", err)
+	}
+	
 	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
 	
 	for packet := range packetSource.Packets() {

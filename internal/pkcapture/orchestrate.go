@@ -2,7 +2,6 @@ package pkcapture
 
 import (
 	"capture_engine/internal/ftextract"
-	"fmt"
 )
 
 type PacketData struct {
@@ -47,7 +46,6 @@ func (fo *FlowOrchestrator) IncrementPacketCount(flowID FlowID, packet PacketDat
 				resolvedProto = p.Protocol
 				break
 			}
-			fmt.Println(p.Protocol)
 		}
 
 		lengths := make([]int, len(packetBatch))
