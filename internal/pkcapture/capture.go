@@ -10,30 +10,23 @@ import (
 	"github.com/google/gopacket/pcap"
 )
 
-// PacketCapture captures packets from the specified network device and processes them using the FlowOrchestrator.
 func PacketCapture(device string, snaplen int32, promisc bool, timeout time.Duration, orchestrator *FlowOrchestrator) error {
-
 	handle, err := pcap.OpenLive(device, snaplen, promisc, timeout)
 	if err != nil {
-		log.Fatal(err)
 		return fmt.Errorf("error opening device %s: %v", device, err)
 	}
-
 	defer handle.Close()
 
-	// Apply BPF filter: ignore local broadcasts, ARPs, and management chatter
-	err = handle.SetBPFFilter("ip and not broadcast and not multicast")
+	// Dual-stack filter for IPv4 and IPv6
+	err = handle.SetBPFFilter("(ip or ip6) and not broadcast and not multicast")
 	if err != nil {
 		log.Printf("Warning: failed to set BPF filter: %v", err)
 	}
-	
+
 	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
-
 	for packet := range packetSource.Packets() {
-
 		metadata := packet.Metadata()
 		flowID, ProtoType, isAppData, payloadLen := ClassifyAndFilterPacket(packet)
-
 		if !isAppData {
 			continue
 		}
@@ -46,14 +39,12 @@ func PacketCapture(device string, snaplen int32, promisc bool, timeout time.Dura
 			Length:     metadata.Length,
 			PayloadLen: payloadLen,
 		}
+
 		orchestrator.IncrementPacketCount(flowID, packetData)
-
 	}
-
 	return nil
 }
 
-// ClassifyAndFilterPacket extracts the 5-tuple, protocol type, application-data flag, and payload length from a packet.
 func ClassifyAndFilterPacket(packet gopacket.Packet) (FlowID, ProtocolType, bool, int) {
 	var flowID FlowID
 	netlayer := packet.NetworkLayer()
@@ -69,7 +60,6 @@ func ClassifyAndFilterPacket(packet gopacket.Packet) (FlowID, ProtocolType, bool
 		flowID.SrcPort = uint16(tcp.SrcPort)
 		flowID.DstPort = uint16(tcp.DstPort)
 		flowID.Protocol = "TCP"
-
 		payload := tcp.Payload
 		payloadLen := len(payload)
 
@@ -79,11 +69,9 @@ func ClassifyAndFilterPacket(packet gopacket.Packet) (FlowID, ProtocolType, bool
 			}
 			return flowID, ProtoTLS, false, payloadLen
 		}
-
 		if isPlainTCPAppData(tcp) {
 			return flowID, ProtoTCP, true, payloadLen
 		}
-
 		return flowID, ProtoTCP, false, payloadLen
 
 	} else if udpLayer := packet.Layer(layers.LayerTypeUDP); udpLayer != nil {
@@ -91,7 +79,6 @@ func ClassifyAndFilterPacket(packet gopacket.Packet) (FlowID, ProtocolType, bool
 		flowID.SrcPort = uint16(udp.SrcPort)
 		flowID.DstPort = uint16(udp.DstPort)
 		flowID.Protocol = "UDP"
-
 		payload := udp.Payload
 		payloadLen := len(payload)
 
@@ -101,13 +88,10 @@ func ClassifyAndFilterPacket(packet gopacket.Packet) (FlowID, ProtocolType, bool
 			}
 			return flowID, ProtoQUIC, false, payloadLen
 		}
-
 		if len(payload) > 0 {
 			return flowID, ProtoUDP, true, payloadLen
 		}
-
 		return flowID, ProtoUDP, false, payloadLen
 	}
-
 	return flowID, "", false, 0
 }
