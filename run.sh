@@ -1,5 +1,10 @@
-# Open Go app in a new terminal window
-gnome-terminal -- bash -c "go run main.go; exec bash"
+#!/bin/bash
 
-# Open Python script in another new terminal window
+# 1. Open Python listener first so the ZeroMQ port is ready
 gnome-terminal -- bash -c "python3 script.py; exec bash"
+
+# 2. Brief sleep to allow Python socket binding
+sleep 1
+
+# 3. Run Go capture engine with sudo for raw packet socket privileges
+gnome-terminal -- bash -c "sudo go run cmd/main/main.go; exec bash"
