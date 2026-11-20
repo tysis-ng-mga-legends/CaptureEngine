@@ -29,9 +29,9 @@ type FlowBatch struct {
 }
 
 type FlowOrchestrator struct {
-	mu             sync.Mutex
-	ActiveSequence map[FlowID][]PacketData
-	ProcessedFlows map[FlowID]bool
+	mu              sync.Mutex
+	ActiveSequence  map[FlowID][]PacketData
+	ProcessedFlows  map[FlowID]bool
 	OutboundChannel chan FlowBatch
 }
 
@@ -57,7 +57,7 @@ func (fo *FlowOrchestrator) IncrementPacketCount(flowID FlowID, packet PacketDat
 	fo.ActiveSequence[canonicalID] = append(fo.ActiveSequence[canonicalID], packet)
 
 	// Exactly 7 packets trigger extraction
-	if len(fo.ActiveSequence[canonicalID]) == 8 {
+	if len(fo.ActiveSequence[canonicalID]) == 7 {
 		packetBatch := fo.ActiveSequence[canonicalID]
 		fo.ProcessedFlows[canonicalID] = true
 		delete(fo.ActiveSequence, canonicalID) // Free memory immediately
@@ -72,10 +72,10 @@ func (fo *FlowOrchestrator) IncrementPacketCount(flowID FlowID, packet PacketDat
 			}
 		}
 
-		frameLens := make([]float32, 8)
-		payloadLens := make([]float32, 8)
-		isFwd := make([]bool, 8)
-		timestamps := make([]int64, 8)
+		frameLens := make([]float32, 7)
+		payloadLens := make([]float32, 7)
+		isFwd := make([]bool, 7)
+		timestamps := make([]int64, 7)
 
 		initiatorIP := packetBatch[0].SourceIP
 		initiatorPort := packetBatch[0].SourcePort

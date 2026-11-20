@@ -26,8 +26,8 @@ func PacketCapture(device string, snaplen int32, promisc bool, timeout time.Dura
 	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
 	for packet := range packetSource.Packets() {
 		metadata := packet.Metadata()
-		flowID, ProtoType, isAppData, payloadLen := ClassifyAndFilterPacket(packet)
-		if !isAppData {
+		flowID, ProtoType, _, payloadLen := ClassifyAndFilterPacket(packet)
+		if ProtoType == "" {
 			continue
 		}
 
